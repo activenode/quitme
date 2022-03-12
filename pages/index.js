@@ -201,29 +201,22 @@ export const Home = () => {
         </Box>
       </Box>
 
-      <Box margin="auto">
-        <Text
-          fontWeight="medium"
-          fontSize="4xl"
-          textAlign={"center"}
-          paddingTop="12"
-        >
-          <h2>Create your own:</h2>
-          <Box marginTop={"4"}>
-            <NextLink href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Factivenode%2Fquitme">
-              <Button colorScheme={"pink"} size="lg">
-                Deploy on Vercel
-              </Button>
-            </NextLink>
-            &nbsp;
-            <NextLink href="https://github.com/activenode/quitme">
-              <Button colorScheme={"messenger"} size="lg">
-                Fork me on GitHub
-              </Button>
-            </NextLink>
-          </Box>
-        </Text>
-      </Box>
+      <div style={{ margin: "auto", textAlign: "center" }}>
+        <Text fontSize={"xl"}>Create your own:</Text>
+        <Box marginTop={"4"}>
+          <NextLink href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Factivenode%2Fquitme">
+            <Button colorScheme={"pink"} size="lg">
+              Deploy on Vercel
+            </Button>
+          </NextLink>
+          &nbsp;
+          <NextLink href="https://github.com/activenode/quitme">
+            <Button colorScheme={"messenger"} size="lg">
+              Fork me on GitHub
+            </Button>
+          </NextLink>
+        </Box>
+      </div>
     </Box>
   );
 };
