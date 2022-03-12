@@ -1,5 +1,6 @@
 import { QUIT_CONFIG } from "../quit.config";
 import { BellIcon, TimeIcon } from "@chakra-ui/icons";
+import NextLink from "next/link";
 import {
   Box,
   HStack,
@@ -16,6 +17,8 @@ import {
   StatLabel,
   StatNumber,
   StatHelpText,
+  Button,
+  Link,
 } from "@chakra-ui/react";
 import * as React from "react";
 import Holidays from "date-holidays";
@@ -77,7 +80,7 @@ const dateStateGenerator = () => {
   let alreadyEnduredPercent =
     100 * (dateDiff < 0 ? 1 : (totalDiff - dateDiff) / totalDiff);
 
-  const remainingFullDays = Math.floor(dateDiff / dayMs);
+  const remainingFullDays = Math.max(0, Math.floor(dateDiff / dayMs));
 
   return {
     nowTime,
@@ -98,6 +101,8 @@ export const Home = () => {
     alreadyEnduredPercent,
     alreadyEnduredDays,
   } = dates;
+
+  const hasReachedEnd = dateDiff <= 0;
 
   useInterval(() => {
     setDateInfo(dateStateGenerator);
@@ -131,13 +136,18 @@ export const Home = () => {
           height={"100%"}
           padding={5}
           color="black"
-          bg={"orange.200"}
+          bg={hasReachedEnd ? "green.200" : "orange.200"}
         >
           <HStack spacing="3">
             <VStack spacing="3">
               <Text fontWeight="medium" fontSize="2xl">
-                <Icon as={TimeIcon} h="10" margin={3} fontSize="3xl" />
-                Freedom @ <button />
+                {!hasReachedEnd && (
+                  <>
+                    <Icon as={TimeIcon} h="10" margin={3} fontSize="3xl" />
+                    Freedom @ <button />
+                  </>
+                )}
+                {hasReachedEnd && "You are free since "}
                 <strong>
                   {freedomDate.getDate()}.{freedomDate.getMonth() + 1}.
                   {freedomDate.getUTCFullYear()}
@@ -150,7 +160,7 @@ export const Home = () => {
         <Progress
           hasStripe
           value={alreadyEnduredPercent}
-          colorScheme="purple"
+          colorScheme={hasReachedEnd ? "green" : "purple"}
         />
 
         <StatGroup margin={"5"}>
@@ -170,15 +180,48 @@ export const Home = () => {
           </Stat>
         </StatGroup>
 
-        <Box
-          display={"flex"}
-          alignItems={"center"}
-          justifyContent={"center"}
-          padding={6}
-        >
-          {Math.floor(dateDiff / 1000)} Seconds to go
+        {!hasReachedEnd && (
+          <Box
+            display={"flex"}
+            alignItems={"center"}
+            justifyContent={"center"}
+            padding={6}
+          >
+            {Math.max(0, Math.floor(dateDiff / 1000))} Seconds to go
+          </Box>
+        )}
+
+        <Box textAlign={"center"}>
+          {hasReachedEnd && (
+            <img
+              src="https://media.giphy.com/media/ZdFxoPhIS4glG/giphy.gif"
+              style={{ display: "inline" }}
+            />
+          )}
         </Box>
       </Box>
+
+      <Text
+        fontWeight="medium"
+        fontSize="4xl"
+        textAlign={"center"}
+        paddingTop="12"
+      >
+        <h2>Create your own:</h2>
+        <Box marginTop={"4"}>
+          <NextLink href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Factivenode%2Fquitme">
+            <Button colorScheme={"pink"} size="lg">
+              Deploy on Vercel
+            </Button>
+          </NextLink>
+          &nbsp;
+          <NextLink href="https://github.com/activenode/quitme">
+            <Button colorScheme={"messenger"} size="lg">
+              Fork me on GitHub
+            </Button>
+          </NextLink>
+        </Box>
+      </Text>
     </Box>
   );
 };
