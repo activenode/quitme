@@ -201,8 +201,10 @@ export const Home = () => {
         </Box>
       </Box>
 
-      <div style={{ margin: "auto", textAlign: "center" }}>
-        <Text fontSize={"xl"}>Create your own:</Text>
+      <div style={{ textAlign: "center", marginTop: "2rem" }}>
+        <Text fontSize={"xl"} fontWeight="bold">
+          Create your own:
+        </Text>
         <Box marginTop={"4"}>
           <NextLink href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Factivenode%2Fquitme">
             <Button colorScheme={"pink"} size="lg">
