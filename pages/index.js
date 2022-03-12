@@ -1,3 +1,4 @@
+import { QUIT_CONFIG } from "../quit.config";
 import { BellIcon, TimeIcon } from "@chakra-ui/icons";
 import {
   Box,
@@ -9,48 +10,94 @@ import {
   useColorModeValue,
   Spinner,
   useInterval,
+  Progress,
+  StatGroup,
+  Stat,
+  StatLabel,
+  StatNumber,
+  StatHelpText,
 } from "@chakra-ui/react";
 import * as React from "react";
 import Holidays from "date-holidays";
-
-const hd = new Holidays("DE", "bw");
-const bwHolidays = hd.getHolidays();
-
-const isWorkingDay = (_date) => {
-  const isSaturday = _date.getDay() === 6;
-  const isSunday = _date.getDay() === 0;
-  const isPublicHoliday = hd.isHoliday(_date);
-
-  return !isSaturday && !isSunday && !isPublicHoliday;
-};
 
 const createDate = (d, m, yyyy) => {
   return new Date(yyyy, m - 1, d, 0, 0, 0, 1);
 };
 
+const NOTICE_HANDED_IN_DATE_CONFIG = QUIT_CONFIG.start;
+const IM_OUT_DATE_CONFIG = QUIT_CONFIG.end;
+const HOLIDAYS_LOCATION_CONFIG = QUIT_CONFIG.holidays;
+const TREAT_SATURDAY_AS_WORKDAY = QUIT_CONFIG.treatSaturdayAsWorkday;
+
+const noticeDate = createDate(
+  NOTICE_HANDED_IN_DATE_CONFIG.day,
+  NOTICE_HANDED_IN_DATE_CONFIG.month,
+  NOTICE_HANDED_IN_DATE_CONFIG.year
+);
+
+const freedomDate = createDate(
+  IM_OUT_DATE_CONFIG.day,
+  IM_OUT_DATE_CONFIG.month,
+  IM_OUT_DATE_CONFIG.year
+);
+// -------------------
+
+const hd = !HOLIDAYS_LOCATION_CONFIG?.disable
+  ? new Holidays(
+      HOLIDAYS_LOCATION_CONFIG.country,
+      HOLIDAYS_LOCATION_CONFIG.state
+    )
+  : null;
+
+function isDayHoliday(date) {
+  return hd !== null && hd.isHoliday(date);
+}
+
+const isWorkingDay = (_date) => {
+  const isSaturday = _date.getDay() === 6;
+  const isSunday = _date.getDay() === 0;
+
+  const _isHoliday = isDayHoliday(_date);
+
+  return (
+    (!isSaturday || !TREAT_SATURDAY_AS_WORKDAY) && !isSunday && !_isHoliday
+  );
+};
+
 const today = () => new Date();
-
 const dayMs = 3600 * 24 * 1000;
-const monthMs = dayMs * 30; // ~ ca. days per month
-
-const freedomDate = createDate(1, 4, 2022);
 
 const dateStateGenerator = () => {
   const nowTime = today().getTime();
   const dateDiff = freedomDate.getTime() - nowTime;
+  const totalDiff = freedomDate.getTime() - noticeDate.getTime();
+  const alreadyEnduredDays = Math.floor(
+    (nowTime - noticeDate.getTime()) / dayMs
+  );
+  let alreadyEnduredPercent =
+    100 * (dateDiff < 0 ? 1 : (totalDiff - dateDiff) / totalDiff);
+
   const remainingFullDays = Math.floor(dateDiff / dayMs);
 
   return {
     nowTime,
     dateDiff,
     remainingFullDays,
+    alreadyEnduredPercent: alreadyEnduredPercent.toFixed(2),
+    alreadyEnduredDays,
   };
 };
 
 export const Home = () => {
   const [dates, setDateInfo] = React.useState(dateStateGenerator);
 
-  const { nowTime, dateDiff, remainingFullDays } = dates;
+  const {
+    nowTime,
+    dateDiff,
+    remainingFullDays,
+    alreadyEnduredPercent,
+    alreadyEnduredDays,
+  } = dates;
 
   useInterval(() => {
     setDateInfo(dateStateGenerator);
@@ -67,39 +114,70 @@ export const Home = () => {
   }
 
   return (
-    <Box as="section">
-      <Stack
-        direction={{ base: "column", sm: "row" }}
-        justifyContent="center"
-        alignItems="center"
-        height={"100%"}
-        padding={5}
-        color="white"
-        bg={useColorModeValue("blue.600", "blue.400")}
-      >
-        <HStack spacing="3">
-          <VStack spacing="3">
-            <Text fontWeight="medium">
-              <Icon as={TimeIcon} fontSize="2xl" h="10" margin={3} />
-              Freedom @ {freedomDate.getDate()}.{freedomDate.getMonth() + 1}.
-              {freedomDate.getUTCFullYear()}
-            </Text>
-            <Text fontWeight="medium">
-              <Icon as={BellIcon} fontSize="2xl" h="10" />
-              Noch {remainingFullDays} Tage, davon {countWorkingDays}{" "}
-              Arbeitstage
-            </Text>
-          </VStack>
-        </HStack>
-      </Stack>
-
+    <Box padding={"7"}>
       <Box
-        display={"flex"}
-        alignItems={"center"}
-        justifyContent={"center"}
-        padding={6}
+        as="section"
+        maxW={"5xl"}
+        margin="auto"
+        borderRadius={"lg"}
+        overflow="hidden"
+        border={"1px"}
+        borderColor={"blue.400"}
       >
-        Noch {Math.floor(dateDiff / 1000)} Sekunden
+        <Stack
+          direction={{ base: "column", sm: "row" }}
+          justifyContent="center"
+          alignItems="center"
+          height={"100%"}
+          padding={5}
+          color="black"
+          bg={"orange.200"}
+        >
+          <HStack spacing="3">
+            <VStack spacing="3">
+              <Text fontWeight="medium" fontSize="2xl">
+                <Icon as={TimeIcon} h="10" margin={3} fontSize="3xl" />
+                Freedom @ <button />
+                <strong>
+                  {freedomDate.getDate()}.{freedomDate.getMonth() + 1}.
+                  {freedomDate.getUTCFullYear()}
+                </strong>
+              </Text>
+            </VStack>
+          </HStack>
+        </Stack>
+
+        <Progress
+          hasStripe
+          value={alreadyEnduredPercent}
+          colorScheme="purple"
+        />
+
+        <StatGroup margin={"5"}>
+          <Stat>
+            <StatLabel fontSize={"xl"}>Days to go</StatLabel>
+            <StatNumber>{remainingFullDays}</StatNumber>
+          </Stat>
+
+          <Stat>
+            <StatLabel fontSize={"xl"}>Working days to go</StatLabel>
+            <StatNumber>{countWorkingDays}</StatNumber>
+          </Stat>
+
+          <Stat>
+            <StatLabel fontSize={"xl"}>Days passed since notice</StatLabel>
+            <StatNumber>{alreadyEnduredDays}</StatNumber>
+          </Stat>
+        </StatGroup>
+
+        <Box
+          display={"flex"}
+          alignItems={"center"}
+          justifyContent={"center"}
+          padding={6}
+        >
+          {Math.floor(dateDiff / 1000)} Seconds to go
+        </Box>
       </Box>
     </Box>
   );
