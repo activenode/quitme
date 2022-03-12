@@ -1,27 +1,24 @@
-import { QUIT_CONFIG } from "../quit.config";
-import { BellIcon, TimeIcon } from "@chakra-ui/icons";
-import NextLink from "next/link";
+import { TimeIcon } from "@chakra-ui/icons";
 import {
   Box,
+  Button,
   HStack,
-  VStack,
   Icon,
-  Stack,
-  Text,
-  useColorModeValue,
-  Spinner,
-  useInterval,
   Progress,
-  StatGroup,
+  Stack,
   Stat,
+  StatGroup,
   StatLabel,
   StatNumber,
-  StatHelpText,
-  Button,
-  Link,
+  Text,
+  useInterval,
+  VStack,
 } from "@chakra-ui/react";
-import * as React from "react";
 import Holidays from "date-holidays";
+import Head from "next/head";
+import NextLink from "next/link";
+import * as React from "react";
+import { QUIT_CONFIG } from "../quit.config";
 
 const createDate = (d, m, yyyy) => {
   return new Date(yyyy, m - 1, d, 0, 0, 0, 1);
@@ -120,6 +117,9 @@ export const Home = () => {
 
   return (
     <Box padding={"7"}>
+      <Head>
+        <title>I quit</title>
+      </Head>
       <Box
         as="section"
         maxW={"5xl"}
